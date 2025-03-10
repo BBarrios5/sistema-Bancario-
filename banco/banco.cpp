@@ -1,34 +1,119 @@
+#include "Cuentas.h"
 #include <iostream>
+#include <iomanip>
+
 using namespace std;
 
-class CuentaBancaria {
-private:
-    double saldo;
+CuentaBancaria::CuentaBancaria(double saldoInicial, bool _activa, bool _esEspecial) {
+	saldo = saldoInicial;
+	activa = _activa;
+	bloqueada = false;
+	retirosFallidos = 0;
+	esEspecial = _esEspecial;
+	tasaInteres = 0.02;
+	contadorInactividad = 0;
+	penalizacionInactividad = 10.0;
+	limiteMuyBajo = 20.0; // Limite para saldo muy bajo
+	limiteBajo = 100.0; // Limite para saldo bajo
+	limiteInteresInactividad = 5; // Número de ciclos de inactividad para aplicar interés
+}
 
-public:
-    CuentaBancaria(double _saldo) {
-        saldo = _saldo;
-    }
+void CuentaBancaria::depositar(double monto) {
+	if (bloqueada) {
+		cout << "La cuenta esta bloqueada. No se puede depositar." << endl;
+		return;
+	}
 
-    void depositar(double monto) {
-        saldo += monto;
-        cout << "Deposito exitoso, saldo actual: " << saldo << endl;
-    }
+	if (!activa) {
+		cout << "La cuenta esta inactiva. No se puede depositar." << endl;
+		return;
+	}
 
-    void retirar(double monto) {
-        if (monto > saldo) {
-            cout << "Fondos insuficientes" << endl;
-        }
-        else {
-            saldo -= monto;
-            cout << "Retiro exitoso, saldo actual: " << saldo << endl;
-        }
-    }
+	if (monto > 0) {
+		// Aplicar tasa de interés si se supera el límite de inactividad
+		if (contadorInactividad >= limiteInteresInactividad) {
+			double interes = monto * tasaInteres;
+			saldo += (monto + interes);
+			cout << "Depósito exitoso. Se aplicó interés: " << interes
+				<< ". Saldo actual con interés: " << saldo << endl;
+		}
+		else {
+			saldo += monto;
+			cout << "Depósito exitoso. Saldo actual: " << saldo << endl;
+		}
 
-    void mostrarSaldo() {
-        cout << "Su saldo es: " << saldo << endl;
-    }
-};
+		// Reiniciar el contador de inactividad al realizar la operación
+		contadorInactividad = 0;
+	}
+	else {
+		cout << "El monto a depositar es invalido..." << endl;
+	}
+}
+
+void CuentaBancaria::retirar(double monto) {
+	if (bloqueada) {
+		cout << "La cuenta esta bloqueada. No se puede retirar." << endl;
+		return;
+	}
+
+	if (!activa) {
+		cout << "La cuenta esta inactiva. No se puede retirar." << endl;
+		return;
+	}
+
+	if (esEspecial && monto > (saldo * 0.5)) {
+		cout << "En una cuenta especial no se puede retirar más del 50% del saldo." << endl;
+		return;
+	}
+
+	if (monto < 0) {
+		cout << "Monto inválido..." << endl;
+		return;
+	}
+	else if (monto > saldo) {
+		cout << "Fondos insuficientes... Retiro fallido." << endl;
+		retirosFallidos++;
+		if (retirosFallidos > 3) {
+			bloqueada = true;
+			cout << "Cuenta bloqueada por múltiples intentos fallidos." << endl;
+		}
+		return;
+	}
+	else {
+		saldo -= monto;
+		cout << "Retiro exitoso. Saldo actual: " << saldo << endl;
+
+		retirosFallidos = 0;
+		contadorInactividad = 0;
+
+		// Mensaje de advertencia si el saldo es bajo
+		if (saldo <= limiteMuyBajo) {
+			cout << "¡ADVERTENCIA! El saldo está extremadamente bajo." << endl;
+		}
+		else if (saldo <= limiteBajo) {
+			cout << "Advertencia: Saldo bajo." << endl;
+		}
+	}
+}
+
+void CuentaBancaria::verificarInactividad() {
+	contadorInactividad++;
+	if (contadorInactividad > MAX_INACTIVIDAD) {
+		saldo -= penalizacionInactividad;
+		cout << "Se aplicó penalización por inactividad. Nuevo saldo: " << saldo << endl;
+		contadorInactividad = 0;
+	}
+}
+
+void CuentaBancaria::mostrarInformacionDeCuenta(int numeroCuenta) {
+	cout << "Número de cuenta: " << numeroCuenta << endl;
+	cout << "Saldo actual: " << saldo << endl;
+	cout << "Estado: " << (activa ? "Activa" : "Inactiva") << endl;
+	cout << "Cuenta " << (bloqueada ? "Bloqueada" : "Desbloqueada") << endl;
+	cout << "Tipo de cuenta: " << (esEspecial ? "Especial" : "Normal") << endl;
+}
+
+
 
 int main() {
     int opcion;
