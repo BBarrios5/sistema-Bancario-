@@ -5,21 +5,23 @@ using namespace std;
 
 #define MAX_INACTIVIDAD 6 
 
+// Clase que representa una cuenta bancaria
 class CuentaBancaria {
 private:
-	double saldo;
-	bool activa;
-	bool bloqueada;
-	int retirosFallidos;
-	bool esEspecial;
-	double tasaInteres;
-	int contadorInactividad;
-	double penalizacionInactividad;
-	double limiteMuyBajo;
-	double limiteBajo;
-	int limiteInteresInactividad;
+	double saldo; // Saldo actual de la cuenta
+	bool activa; // Indica si la cuenta esta activa
+	bool bloqueada; // Indica si la cuenta esta bloqueada por intentos fallidos
+	int retirosFallidos; // Contador de intentos fallidos de retiro
+	bool esEspecial; // Indica si la cuenta es especial (restricciones en retiros)
+	double tasaInteres; // Tasa de interes aplicada a depositos tras inactividad
+	int contadorInactividad; // Contador de ciclos de inactividad
+	double penalizacionInactividad; // Monto de penalizacion por inactividad
+	double limiteMuyBajo; // Limite para advertencia de saldo extremadamente bajo
+	double limiteBajo; // Limite para advertencia de saldo bajo
+	int limiteInteresInactividad; // Numero de ciclos antes de aplicar interes
 
 public:
+	// Constructor de la cuenta bancaria
 	CuentaBancaria(double saldoInicial, bool _activa, bool _esEspecial) {
 		saldo = (saldoInicial >= 0) ? saldoInicial : 0;
 		activa = _activa;
@@ -34,6 +36,7 @@ public:
 		limiteInteresInactividad = 5;
 	}
 
+	// Metodo para depositar dinero en la cuenta
 	void depositar(double monto) {
 		if (bloqueada || !activa) {
 			cout << "Operacion no permitida. Cuenta bloqueada o inactiva." << endl;
@@ -56,6 +59,7 @@ public:
 		contadorInactividad = 0;
 	}
 
+	// Metodo para retirar dinero de la cuenta
 	void retirar(double monto) {
 		if (bloqueada || !activa) {
 			cout << "Operacion no permitida. Cuenta bloqueada o inactiva." << endl;
@@ -90,6 +94,7 @@ public:
 		}
 	}
 
+	// Metodo para verificar la inactividad de la cuenta y aplicar penalizaciones
 	void verificarInactividad() {
 		if (++contadorInactividad > MAX_INACTIVIDAD) {
 			if (saldo >= penalizacionInactividad) {
@@ -103,6 +108,7 @@ public:
 		}
 	}
 
+	// Metodo para mostrar informacion de la cuenta
 	void mostrarInformacionDeCuenta(int numeroCuenta) {
 		cout << fixed << setprecision(2);
 		cout << "-----------------------------------\n";
@@ -115,6 +121,7 @@ public:
 	}
 };
 
+// Funcion principal que maneja la interaccion con el usuario
 
 int main() {
 	int opcion, numCuenta;
